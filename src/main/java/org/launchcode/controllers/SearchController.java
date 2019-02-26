@@ -17,19 +17,10 @@ import java.util.HashMap;
 @Controller
 @RequestMapping("search")
 public class SearchController {
-    static HashMap<String, String> columnChoices = new HashMap<>();
-
-    public SearchController () {
-        columnChoices.put("core competency", "Skill");
-        columnChoices.put("employer", "Employer");
-        columnChoices.put("location", "Location");
-        columnChoices.put("position type", "Position Type");
-        columnChoices.put("all", "All");
-    }
 
     @RequestMapping(value = "")
     public String search(Model model) {
-        model.addAttribute("columns", SearchController.columnChoices);
+        model.addAttribute("columns", ListController.columnChoices);
         return "search";
     }
 
@@ -39,18 +30,27 @@ public class SearchController {
     @RequestMapping(value = "results", method = RequestMethod.GET)
     public String search(Model model, @RequestParam String searchType, @RequestParam String searchTerm) {
 
+
         if (searchType.equals("all")) {
+            // Run the query to retrieve jobs by all fields' terms
             ArrayList<HashMap<String, String>> jobs = JobData.findByValue(searchTerm);
+
+            // Title of the search results
             model.addAttribute("title", "All Jobs");
+
+            // For jobs listing on the model
+            model.addAttribute("jobs", jobs);
+
+            return "search";
+        }
+        else {
+            ArrayList<HashMap<String, String>> jobs = JobData.findByColumnAndValue(searchType, searchTerm);
+
+            model.addAttribute("title", "All " + ListController.columnChoices.get(searchType) + " Values");
+
             model.addAttribute("jobs", jobs);
             return "search";
-        } else {
-            ArrayList<HashMap<String, String>> jobs = JobData.findByColumnAndValue(searchType,searchTerm);
-            model.addAttribute("columns", SearchController.columnChoices);
-            ArrayList<HashMap<String, String>> jobsbyval = JobData.findByValue(searchTerm);
-            model.addAttribute("jobs", jobsbyval);
-            return "search" + "";
         }
     }
-
 }
+
